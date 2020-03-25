@@ -1,0 +1,93 @@
+#PBS -N set1_test?Job
+
+#PBS -S /bin/bash
+
+# Specific the queue type
+#PBS -q short
+
+# Archivo de salida
+#PBS -o /home/hectorbm/testES/data1/$JOBID/output.log
+# Archivo de salida de error
+#PBS -e /home/hectorbm/testES/data1/$JOBID/error.log
+
+##PBS -l walltime=2400:00:00
+##PBS -l cput=2400:00:00
+
+echo ------------------------------------------------------
+echo -n 'Job is running on node '; cat $PBS_NODEFILE
+echo ------------------------------------------------------
+echo PBS: qsub is running on $PBS_O_HOST
+echo PBS: originating queue is $PBS_O_QUEUE
+echo PBS: executing queue is $PBS_QUEUE
+echo PBS: working directory is $PBS_O_WORKDIR
+echo PBS: execution mode is $PBS_ENVIRONMENT
+echo PBS: job identifier is $PBS_JOBID
+echo PBS: job name is $PBS_JOBNAME
+echo PBS: node file is $PBS_NODEFILE
+echo PBS: current home directory is $PBS_O_HOME
+echo PBS: PATH = $PBS_O_PATH
+echo ------------------------------------------------------
+
+cd /scratch/local/hectorbm
+
+
+if [ -d /scratch/local/hectorbm/Set1/$JOBID ]; then
+    rm -rf /scratch/local/hectorbm/Set1/$JOBID
+    mkdir -p Set1/$JOBID
+else
+    mkdir -p Set1/$JOBID
+fi
+
+cd /scratch/local/hectorbm/Set1/$JOBID
+
+cp /storage/alice/data_analysis_2016_hector/esa_equalization/set1/DebugClassesMultESA2016.C .
+cp /storage/alice/data_analysis_2016_hector/esa_equalization/set1/my_tools.C .
+cp /storage/alice/data_analysis_2016_hector/esa_equalization/set1/analysisPPminbiasSo.C .
+cp /storage/alice/data_analysis_2016_hector/esa_equalization/set1/execute_so.sh .
+cp /storage/alice/data_analysis_2016_hector/esa_equalization/set1/do_runanalysisPPminbiasES.C .
+cp /storage/alice/data_analysis_2016_hector/esa_equalization/set1/my_settings.C .
+cp /storage/alice/data_analysis_2016_hector/esa_equalization/set1/fulllist13TeV.list .
+cp /storage/alice/data_analysis_2016_hector/esa_equalization/set1/HistPercPP13000.root .
+cp /storage/alice/data_analysis_2016_hector/esa_equalization/set1/SoIntervals_Per0asdat_100Nchbins.root .
+
+## cp /storage/alice/data_analysis_2016_hector/esa_equalization/HistPercPP13000_Abs.root .
+## cp /storage/alice/data_analysis_2016_hector/esa_equalization/set1/HistPercPP13000.root .
+
+source  /home/aortizve/env_isabel.sh
+## source /home/aortizve/env.antonio
+## source /home/aortizve/alice-env-antonio.sh 
+#3 source /home/hectorbm/env_isabel.sh 
+
+NUM=10
+
+ID=$((JOBID+1))
+NUMSTART=$(echo "$JOBID*$NUM" | bc -ql)
+
+
+source execute_so.sh $NUM $NUMSTART 2>&1 | tee sim.log
+rm fulllist13TeV.list
+rm analysisPPminbiasSo.C
+rm DebugClassesMultESA2016.C
+rm execute_so.sh
+rm do_runanalysisPPminbiasES.C
+rm my_settings.C
+rm my_tools.C
+rm HistPercPP13000.root 
+rm SoIntervals_Per0asdat_100Nchbins.root
+rm *.d
+rm *.so
+cd ..
+
+# mv $JOBID /storage/alice/data_analysis_2016/esa_equalization/output
+### Si usas el directorio JOBID, hay que crearlo antes de copiar el resultado
+#mv $JOBID/* /storage/alice/data_analysis_2016_hector/esa_equalization/output/$JOBID
+
+#  O mejor sólo mover el JOBID  en el directorio output
+
+mv $JOBID /storage/alice/data_analysis_2016_hector/esa_equalization/output/
+
+
+### Al usar mv (move) ya no existe el directorio y no tiene sentido borrarlo (rm)
+#rm -rf $JOBID
+
+
